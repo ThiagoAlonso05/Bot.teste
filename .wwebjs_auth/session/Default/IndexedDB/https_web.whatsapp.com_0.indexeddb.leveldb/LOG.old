@@ -1,0 +1,14 @@
+2024/02/29-19:08:05.311 1870 Reusing MANIFEST C:\Users\thiago.alonso\Desktop\Nova pasta\.wwebjs_auth\session\Default\IndexedDB\https_web.whatsapp.com_0.indexeddb.leveldb/MANIFEST-000001
+2024/02/29-19:08:05.315 1870 Recovering log #639
+2024/02/29-19:08:05.553 1870 Reusing old log C:\Users\thiago.alonso\Desktop\Nova pasta\.wwebjs_auth\session\Default\IndexedDB\https_web.whatsapp.com_0.indexeddb.leveldb/000639.log 
+2024/02/29-19:08:43.994 160c Level-0 table #645: started
+2024/02/29-19:08:44.045 160c Level-0 table #645: 1241197 bytes OK
+2024/02/29-19:08:44.046 160c Delete type=0 #639
+2024/02/29-19:08:50.379 4a14 Compacting 1@1 + 2@2 files
+2024/02/29-19:08:50.594 4a14 Generated table #646@1: 85412 keys, 2234715 bytes
+2024/02/29-19:08:50.766 4a14 Generated table #647@1: 55708 keys, 2308441 bytes
+2024/02/29-19:08:50.767 4a14 Compacted 1@1 + 2@2 files => 4543156 bytes
+2024/02/29-19:08:50.767 4a14 compacted to: files[ 0 0 2 0 0 0 0 ]
+2024/02/29-19:08:50.768 4a14 Delete type=2 #641
+2024/02/29-19:08:50.768 4a14 Delete type=2 #642
+2024/02/29-19:08:50.768 4a14 Delete type=2 #645

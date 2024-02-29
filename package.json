@@ -1,0 +1,19 @@
+{
+  "name": "nova-pasta",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "start": "node teste.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "express": "^4.18.3",
+    "mysql": "^2.18.1",
+    "qrcode-terminal": "^0.12.0",
+    "whatsapp-web.js": "^1.23.0"
+  },
+  "devDependencies": {},
+  "description": ""
+}

@@ -1,0 +1,20 @@
+[0229/191520.244:INFO:CONSOLE(0)] "Error with Permissions-Policy header: Feature xr-spatial-tracking's parameters are ignored.", source:  (0)
+[0229/191520.244:INFO:CONSOLE(0)] "Error with Permissions-Policy header: Unrecognized feature: 'ambient-light-sensor'.", source:  (0)
+[0229/191520.244:INFO:CONSOLE(0)] "Error with Permissions-Policy header: Unrecognized feature: 'bluetooth'.", source:  (0)
+[0229/191520.244:INFO:CONSOLE(0)] "Error with Permissions-Policy header: Unrecognized feature: 'gamepad'.", source:  (0)
+[0229/191520.244:INFO:CONSOLE(0)] "Error with Permissions-Policy header: Unrecognized feature: 'local-fonts'.", source:  (0)
+[0229/191520.245:INFO:CONSOLE(0)] "Error with Permissions-Policy header: Unrecognized feature: 'window-management'.", source:  (0)
+[0229/191520.245:INFO:CONSOLE(0)] "Error with Permissions-Policy-Report-Only header: Feature picture-in-picture's parameters are ignored.", source:  (0)
+[0229/191525.001:ERROR:indexed_db_metadata_coding.cc(201)] IndexedDB Consistency Error: GET_OBJECT_STORES
+[0229/192041.471:ERROR:indexed_db_metadata_coding.cc(201)] IndexedDB Consistency Error: GET_OBJECT_STORES
+[0229/192041.512:ERROR:indexed_db_metadata_coding.cc(201)] IndexedDB Consistency Error: GET_OBJECT_STORES
+[0229/192042.009:ERROR:indexed_db_metadata_coding.cc(201)] IndexedDB Consistency Error: GET_OBJECT_STORES
+[0229/192044.020:ERROR:indexed_db_metadata_coding.cc(201)] IndexedDB Consistency Error: GET_OBJECT_STORES
+[0229/192047.005:ERROR:indexed_db_metadata_coding.cc(201)] IndexedDB Consistency Error: GET_OBJECT_STORES
+[0229/192052.005:ERROR:indexed_db_metadata_coding.cc(201)] IndexedDB Consistency Error: GET_OBJECT_STORES
+[0229/192100.011:ERROR:indexed_db_metadata_coding.cc(201)] IndexedDB Consistency Error: GET_OBJECT_STORES
+[0229/192114.020:ERROR:indexed_db_metadata_coding.cc(201)] IndexedDB Consistency Error: GET_OBJECT_STORES
+[0229/192136.012:ERROR:indexed_db_metadata_coding.cc(201)] IndexedDB Consistency Error: GET_OBJECT_STORES
+[0229/192211.026:ERROR:indexed_db_metadata_coding.cc(201)] IndexedDB Consistency Error: GET_OBJECT_STORES
+[0229/192306.021:ERROR:indexed_db_metadata_coding.cc(201)] IndexedDB Consistency Error: GET_OBJECT_STORES
+[0229/192439.013:ERROR:indexed_db_metadata_coding.cc(201)] IndexedDB Consistency Error: GET_OBJECT_STORES
