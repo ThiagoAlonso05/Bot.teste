@@ -2,41 +2,69 @@ DROP schema if exists Calendario;
 CREATE DATABASE Calendario;
 USE Calendario;
 
-Drop table reserva;
+
+
+CREATE TABLE Dias (
+    idDia INT AUTO_INCREMENT PRIMARY KEY,
+    data DATE NOT NULL,
+    UNIQUE KEY(data)
+);
+
+SELECT * FROM Dias;
+
+CREATE TABLE Horarios (
+    idHorario INT AUTO_INCREMENT PRIMARY KEY,
+    horario TIME NOT NULL,
+    UNIQUE KEY(horario)
+);
+
+SELECT * FROM Horarios;
+
+CREATE TABLE Disponibilidade (
+    idDisponibilidade INT AUTO_INCREMENT PRIMARY KEY,
+    idDia INT,
+    idHorario INT,
+    disponivel BOOLEAN NOT NULL DEFAULT true,
+    FOREIGN KEY (idDia) REFERENCES Dias(idDia),
+    FOREIGN KEY (idHorario) REFERENCES Horarios(idHorario),
+    UNIQUE KEY(idDia, idHorario)
+);
+
+SELECT * FROM Disponibilidade;
+
 CREATE TABLE Reserva (
     idReserva INT NOT NULL AUTO_INCREMENT,
-    horarioReserva VARCHAR(50) NOT NULL,
-    Nome VARCHAR(500) NOT NULL,
-    CPF VARCHAR(150) NOT NULL,
-    Telefone VARCHAR(150) NOT NULL,
+    dataReserva DATE NOT NULL,
+    horarioReserva VARCHAR(10) NOT NULL,
+    Nome VARCHAR(60) NOT NULL,
+    CPF VARCHAR(20) NOT NULL,
+    Telefone VARCHAR(20) NOT NULL,
 
     PRIMARY KEY (idReserva)
 );
 
 SELECT * FROM Reserva;
 
-CREATE TABLE HorariosDisponiveis (
-    idHorario INT AUTO_INCREMENT,
-    horario TIME NOT NULL ,
-    disponivel BOOLEAN NOT NULL DEFAULT true,
-    PRIMARY KEY (idHorario)
-);
+INSERT INTO Horarios (horario) VALUES
+('09:00'),
+('10:00'),
+('11:00'),
+('12:00'),
+('13:00'),
+('14:00'),
+('15:00'),
+('16:00'),
+('17:00');
 
-Select * from HorariosDisponiveis;
+INSERT INTO Dias (data) VALUES
+('2024-03-04'),  -- Segunda-feira
+('2024-03-05'),  -- Terça-feira
+('2024-03-06'),  -- Quarta-feira
+('2024-03-07'),  -- Quinta-feira
+('2024-03-08');  -- Sexta-feira
 
-drop table HorariosDisponiveis;
-
-ALTER TABLE HorariosDisponiveis
-ADD UNIQUE (horario);
-
-
-INSERT INTO HorariosDisponiveis (horario, disponivel) VALUES
-('09:00', true),
-('10:00', true),
-('11:00', true),
-('12:00', true),
-('13:00', true),
-('14:00', true),
-('15:00', true),
-('16:00', true),
-('17:00', true);
+INSERT INTO Disponibilidade (idDia, idHorario)
+SELECT d.idDia, h.idHorario
+FROM Dias d
+CROSS JOIN Horarios h
+WHERE d.data BETWEEN '2024-03-04' AND '2024-03-08';

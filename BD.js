@@ -56,54 +56,68 @@ client.on("message", async (message) => {
       await client.sendMessage(message.from, "Qual é o seu telefone?");
       break;
 
-    case "telefone":
-      userData[message.from].telefone = message.body;
-      const horariosDisponiveis = await buscarHorariosDisponiveis();
-      let mensagemHorarios = "Horários disponíveis:\n" + horariosDisponiveis.join("\n");
-      await client.sendMessage(message.from, mensagemHorarios);
-      userStages[message.from] = "confirmarHorario";
-      break;
+      case "telefone":
+        userData[message.from].telefone = message.body;
+
+        const diasDisponiveis = await buscarDiasDisponiveis();
+        let mensagemDias = "Dias disponíveis:\n" + diasDisponiveis.map(formatarDataParaExibicao).join("\n");
+        await client.sendMessage(message.from, mensagemDias);
+        userStages[message.from] = "data";
+        break;
+      
+        case "data":
+          userData[message.from].data = message.body;
+          const dataFormatadaParaMySQL = converterDataParaFormatoMySQL(userData[message.from].data);
+          const horariosDisponiveis = await buscarHorariosDisponiveis(dataFormatadaParaMySQL);
+          let mensagemHorarios = "Horários disponíveis:\n" + horariosDisponiveis.join("\n");
+          await client.sendMessage(message.from, mensagemHorarios);
+          userStages[message.from] = "confirmarHorario";
+          break;
+        
+      
 
     case "confirmarHorario":
       const horarioEscolhido = message.body;
-        userData[message.from].horario = horarioEscolhido;
-        await enviarConfirmacaoReserva(message.from, horarioEscolhido);
-      atualizarHorarioDisponibilidade(horarioEscolhido.trim());
+      userData[message.from].horario = horarioEscolhido;
+      await enviarConfirmacaoReserva(message.from, horarioEscolhido);
       await client.sendMessage(message.from, "Se precisar alterar alguma informação, digite !iniciar para recomeçar.");
+
       delete userData[message.from];
       delete userStages[message.from];
       break;
 
     default:
-      await client.sendMessage(
-        message.from,
-        "Não entendi. Por favor, digite !iniciar para começar."
-      );
+      await client.sendMessage(message.from,"Não entendi. Por favor, digite !iniciar para começar.");
       break;
   }
 });
 
-async function buscarHorariosDisponiveis() {
+async function buscarHorariosDisponiveis(dataDesejada) {
   return new Promise((resolve, reject) => {
-    connection.query(
-      "SELECT horario FROM HorariosDisponiveis WHERE disponivel = 1",
-      (error, results, fields) => {
-        if (error) {
-          reject(error);
-        } else {
-          const horariosDisponiveis = results.map((row) => row.horario);
-          console.log(horariosDisponiveis);
-          resolve(horariosDisponiveis);
-        }
+    const query = `
+      SELECT DATE_FORMAT(h.horario, '%H:%i') as horario
+      FROM Disponibilidade d
+      JOIN Horarios h ON d.idHorario = h.idHorario
+      JOIN Dias di ON d.idDia = di.idDia
+      WHERE d.disponivel = 1 AND di.data = ?
+    `;
+    connection.query(query, [dataDesejada], (error, results) => {
+      if (error) {
+        reject(error);
+      } else {
+        const horariosDisponiveis = results.map(row => row.horario);
+        resolve(horariosDisponiveis);
       }
-    );
+    });
   });
 }
+
 
 async function enviarConfirmacaoReserva(from, horarioEscolhido) {
   // Implementação da lógica para enviar a confirmação de reserva
   await client.sendMessage(from,`Sua reserva para ${horarioEscolhido} foi confirmada!`);
   inserirDadosReserva(
+    converterDataParaFormatoMySQL(userData[from].data),
     userData[from].horario,
     userData[from].nome,
     userData[from].cpf,
@@ -111,26 +125,68 @@ async function enviarConfirmacaoReserva(from, horarioEscolhido) {
   );
 }
 
-function inserirDadosReserva(horario, nome, cpf, telefone) {
-  const query = "INSERT INTO Reserva (horarioReserva, Nome, CPF, Telefone) VALUES (?, ?, ?, ?)";
-  connection.query(query,[horario, nome, cpf, telefone],(error, results, fields) => {
-      if (error) {
-        console.error("Erro ao inserir dados na reserva:", error);
-        return;
-      }
-      console.log("Dados da reserva inseridos com sucesso, ID da reserva:", results.insertId);
-      atualizarHorarioDisponibilidade(horario);
+function inserirDadosReserva(dataFormatada, horario, nome, cpf, telefone) {
+    const queryReserva = "INSERT INTO Reserva (dataReserva, horarioReserva, Nome, CPF, Telefone) VALUES (?, ?, ?, ?, ?)";
+  connection.query(queryReserva, [dataFormatada, horario, nome, cpf, telefone], (error, results) => {
+    if (error) {
+      console.error("Erro ao inserir dados na reserva:", error);
+      return;
     }
-  );
+    console.log("Dados da reserva inseridos com sucesso, ID da reserva:", results.insertId);
+    atualizarHorario(dataFormatada, horario);
+  });
 }
 
-function atualizarHorarioDisponibilidade(horarioSelecionado) {
-  const query ="UPDATE HorariosDisponiveis SET disponivel = false WHERE horario = ?";
-  connection.query(query, [horarioSelecionado], (error, results, fields) => {
+
+
+function atualizarHorario(dataFormatada, horarioSelecionado) {
+  const query = `
+    UPDATE Disponibilidade d
+    JOIN Horarios h ON d.idHorario = h.idHorario
+    JOIN Dias di ON d.idDia = di.idDia
+    SET d.disponivel = false
+    WHERE di.data = ? AND h.horario = ?
+  `;
+  connection.query(query, [dataFormatada, horarioSelecionado], (error) => {
     if (error) {
       console.error("Erro ao atualizar horário:", error);
       return;
     }
     console.log("Horário atualizado com sucesso.");
   });
+}
+
+
+async function buscarDiasDisponiveis() {
+  return new Promise((resolve, reject) => {
+    const query = `
+      SELECT DISTINCT DATE_FORMAT(di.data, '%Y-%m-%d') as data_formatada
+      FROM Dias di
+      JOIN Disponibilidade d ON di.idDia = d.idDia
+      JOIN Horarios h ON d.idHorario = h.idHorario
+      WHERE d.disponivel = 1
+      GROUP BY di.data
+      HAVING COUNT(h.idHorario) > 0
+    `;
+    connection.query(query, (error, results) => {
+      if (error) {
+        reject(error);
+      } else {
+        const diasDisponiveis = results.map(row => row.data_formatada);
+        resolve(diasDisponiveis);
+      }
+    });
+  });
+}
+
+
+
+function formatarDataParaExibicao(data) {
+  const [ano, mes, dia] = data.split('-');
+  return `${dia}/${mes}`;
+}
+
+function converterDataParaFormatoMySQL(data) {
+  const [dia, mes] = data.split('/');
+  return `2024-${mes}-${dia}`; // Substitua '2024' pelo ano apropriado
 }
