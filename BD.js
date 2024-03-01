@@ -30,7 +30,7 @@ const userStages = {};
 const userData = {};
 
 client.on("message", async (message) => {
-  if (message.body.toLowerCase() === "!oie") {
+  if (message.body.toLowerCase() === "!iniciar") {
     await client.sendMessage(message.from, "Bem vindo ao nosso serviço!");
     await client.sendMessage(message.from, "Por favor, diga seu nome.");
     userStages[message.from] = "nome";
@@ -66,16 +66,10 @@ client.on("message", async (message) => {
 
     case "confirmarHorario":
       const horarioEscolhido = message.body;
-      const reservaFeita = await reservarHorario(horarioEscolhido.trim(),message.from);
-      userStages[message.from] = "fim";
-      if (reservaFeita) {
         userData[message.from].horario = horarioEscolhido;
         await enviarConfirmacaoReserva(message.from, horarioEscolhido);
-      } else {
-        await client.sendMessage(message.from,"Erro ao reservar o horário, tente outro.");
-      }
       atualizarHorarioDisponibilidade(horarioEscolhido.trim());
-      await client.sendMessage(message.from, "Se precisar alterar alguma informação, digite !Oie para recomeçar.");
+      await client.sendMessage(message.from, "Se precisar alterar alguma informação, digite !iniciar para recomeçar.");
       delete userData[message.from];
       delete userStages[message.from];
       break;
@@ -83,7 +77,7 @@ client.on("message", async (message) => {
     default:
       await client.sendMessage(
         message.from,
-        "Não entendi. Por favor, digite !Oie para começar."
+        "Não entendi. Por favor, digite !iniciar para começar."
       );
       break;
   }
