@@ -188,5 +188,5 @@ function formatarDataParaExibicao(data) {
 
 function converterDataParaFormatoMySQL(data) {
   const [dia, mes] = data.split('/');
-  return `2024-${mes}-${dia}`; // Substitua '2024' pelo ano apropriado
+  return `2024-${mes}-${dia}`;
 }
