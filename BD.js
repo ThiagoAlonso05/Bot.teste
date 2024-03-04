@@ -1,6 +1,5 @@
 const qrcode = require("qrcode-terminal");
 const { Client, LocalAuth } = require("whatsapp-web.js");
-
 const mysql = require("mysql");
 
 // Configuração da conexão com o banco de dados
@@ -12,6 +11,7 @@ const connection = mysql.createConnection({
 });
 connection.connect();
 
+// Auth do WhatsApp
 const client = new Client({
   authStrategy: new LocalAuth(),
 });
@@ -29,6 +29,7 @@ client.initialize();
 const userStages = {};
 const userData = {};
 
+// Inicio do bot
 client.on("message", async (message) => {
   if (message.body.toLowerCase() === "!iniciar") {
     await client.sendMessage(message.from, "Bem vindo ao nosso serviço!");
@@ -43,6 +44,7 @@ client.on("message", async (message) => {
     userData[message.from] = {};
   }
 
+  // Lógica para cada etapa do atendimento
   switch (currentStage) {
     case "nome":
       userData[message.from].nome = message.body;
@@ -56,30 +58,28 @@ client.on("message", async (message) => {
       await client.sendMessage(message.from, "Qual é o seu telefone?");
       break;
 
-      case "telefone":
-        userData[message.from].telefone = message.body;
+    case "telefone":
+      userData[message.from].telefone = message.body;
 
-        const diasDisponiveis = await buscarDiasDisponiveis();
-        let mensagemDias = "Dias disponíveis:\n" + diasDisponiveis.map(formatarDataParaExibicao).join("\n");
-        await client.sendMessage(message.from, mensagemDias);
-        userStages[message.from] = "data";
-        break;
+      const diasDisponiveis = await buscarDias();
+      let mensagemDias = "Dias disponíveis:\n" + diasDisponiveis.map(formatarData).join("\n");
+      await client.sendMessage(message.from, mensagemDias);
+      userStages[message.from] = "data";
+      break;
       
-        case "data":
-          userData[message.from].data = message.body;
-          const dataFormatadaParaMySQL = converterDataParaFormatoMySQL(userData[message.from].data);
-          const horariosDisponiveis = await buscarHorariosDisponiveis(dataFormatadaParaMySQL);
-          let mensagemHorarios = "Horários disponíveis:\n" + horariosDisponiveis.join("\n");
-          await client.sendMessage(message.from, mensagemHorarios);
-          userStages[message.from] = "confirmarHorario";
-          break;
-        
-      
+    case "data":
+      userData[message.from].data = message.body;
+      const dataFormatadaParaMySQL = converterDataSQL(userData[message.from].data);
+      const horariosDisponiveis = await buscarHorarios(dataFormatadaParaMySQL);
+      let mensagemHorarios = "Horários disponíveis:\n" + horariosDisponiveis.join("\n");
+      await client.sendMessage(message.from, mensagemHorarios);
+      userStages[message.from] = "confirmarHorario";
+      break;
 
     case "confirmarHorario":
       const horarioEscolhido = message.body;
       userData[message.from].horario = horarioEscolhido;
-      await enviarConfirmacaoReserva(message.from, horarioEscolhido);
+      await enviarConfirmacao(message.from, horarioEscolhido);
       await client.sendMessage(message.from, "Se precisar alterar alguma informação, digite !iniciar para recomeçar.");
 
       delete userData[message.from];
@@ -92,7 +92,7 @@ client.on("message", async (message) => {
   }
 });
 
-async function buscarHorariosDisponiveis(dataDesejada) {
+async function buscarHorarios(dataDesejada) {
   return new Promise((resolve, reject) => {
     const query = `
       SELECT DATE_FORMAT(h.horario, '%H:%i') as horario
@@ -113,11 +113,11 @@ async function buscarHorariosDisponiveis(dataDesejada) {
 }
 
 
-async function enviarConfirmacaoReserva(from, horarioEscolhido) {
+async function enviarConfirmacao(from, horarioEscolhido) {
   // Implementação da lógica para enviar a confirmação de reserva
   await client.sendMessage(from,`Sua reserva para ${horarioEscolhido} foi confirmada!`);
-  inserirDadosReserva(
-    converterDataParaFormatoMySQL(userData[from].data),
+  inserirDados(
+    converterDataSQL(userData[from].data),
     userData[from].horario,
     userData[from].nome,
     userData[from].cpf,
@@ -125,7 +125,7 @@ async function enviarConfirmacaoReserva(from, horarioEscolhido) {
   );
 }
 
-function inserirDadosReserva(dataFormatada, horario, nome, cpf, telefone) {
+function inserirDados(dataFormatada, horario, nome, cpf, telefone) {
     const queryReserva = "INSERT INTO Reserva (dataReserva, horarioReserva, Nome, CPF, Telefone) VALUES (?, ?, ?, ?, ?)";
   connection.query(queryReserva, [dataFormatada, horario, nome, cpf, telefone], (error, results) => {
     if (error) {
@@ -157,7 +157,7 @@ function atualizarHorario(dataFormatada, horarioSelecionado) {
 }
 
 
-async function buscarDiasDisponiveis() {
+async function buscarDias() {
   return new Promise((resolve, reject) => {
     const query = `
       SELECT DISTINCT DATE_FORMAT(di.data, '%Y-%m-%d') as data_formatada
@@ -181,12 +181,12 @@ async function buscarDiasDisponiveis() {
 
 
 
-function formatarDataParaExibicao(data) {
+function formatarData(data) {
   const [ano, mes, dia] = data.split('-');
   return `${dia}/${mes}`;
 }
 
-function converterDataParaFormatoMySQL(data) {
+function converterDataSQL(data) {
   const [dia, mes] = data.split('/');
   return `2024-${mes}-${dia}`;
 }
