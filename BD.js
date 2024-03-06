@@ -43,6 +43,7 @@ client.on("message", async (message) => {
   if (!userData[message.from]) {
     userData[message.from] = {};
   }
+  
 
   // Lógica para cada etapa do atendimento
   switch (currentStage) {
