@@ -103,6 +103,7 @@ client.on("message", async (message) => {
             );
             // Implementar a lógica de conexão com o atendente
             // Ajustar para pegar a mensaguem do atendente
+            atendimento = true;
             if (message.body.toLowerCase() === "!finalizaratendimento") {
               atendimento = false;
               await client.sendMessage(
@@ -110,19 +111,23 @@ client.on("message", async (message) => {
                 "Atendimento humano finalizado. Como posso ajudar agora?"
               );
             }
-            atendimento = true;
-
             break;
           case "2":
             if (!atendimento) {
+              if (message.body.toLowerCase() === "voltar") {
+                userStages[message.from] = "menuOpcoes";
+              } else {
               // Código para falar com um atendente
               const diasDisponiveis = await buscarDias();
               let mensagemDias =
                 "Dias disponíveis:\n" +
-                diasDisponiveis.map(formatarData).join("\n");
+                diasDisponiveis.map(formatarData).join("\n") +
+                "\nPara voltar escreva 'voltar'";
               await client.sendMessage(message.from, mensagemDias);
-              userStages[message.from] = "data";
-              break;
+
+                userStages[message.from] = "data";
+                break;
+              }
             } else {
               await client.sendMessage(
                 message.from,
@@ -196,10 +201,16 @@ client.on("message", async (message) => {
           dataFormatadaParaMySQL
         );
         let mensagemHorarios =
-          "Horários disponíveis:\n" + horariosDisponiveis.join("\n");
+          "Horários disponíveis:\n" +
+          horariosDisponiveis.join("\n") +
+          "\n Para voltar escreva 'voltar'";
         await client.sendMessage(message.from, mensagemHorarios);
-        userStages[message.from] = "confirmarHorario";
-        break;
+        if (message.body.toLowerCase() === "voltar") {
+          userStages[message.from] = "menuOpcoes";
+        } else {
+          userStages[message.from] = "confirmarHorario";
+          break;
+        }
 
       case "confirmarHorario":
         const horarioEscolhido = message.body;
@@ -219,12 +230,12 @@ client.on("message", async (message) => {
           message.from,
           "Não entendi. Por favor, digite !iniciar para começar."
         );
+        userTimeouts[message.from] = setTimeout(() => {
+          console.log(`Timeout expirado para ${message.from}`);
+          resetUserState(message.from);
+        }, TIMEOUT_DURATION);
         break;
     }
-    userTimeouts[message.from] = setTimeout(() => {
-      console.log(`Timeout expirado para ${message.from}`);
-      resetUserState(message.from);
-    }, TIMEOUT_DURATION);
   }
 });
 
