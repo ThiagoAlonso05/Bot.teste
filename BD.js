@@ -31,8 +31,8 @@ const userData = {};
 
 // Inicio do bot
 
-// const TIMEOUT_DURATION = 30000; // 5 minutos, por exemplo
-const userTimeouts = {};
+// const TIMEOUT_DURATION = 120000; // 120 segundos, por exemplo
+// const userTimeouts = {};
 
 // async function resetUserState(user) {
 //   delete userData[user];
@@ -43,7 +43,7 @@ const userTimeouts = {};
 let atendimento = false;
 
 client.on("message", async (message) => {
-  if (atendimento == false) {
+  if(atendimento == false){
     if (message.body.toLowerCase() === "!iniciar") {
       // Pegar o Nome
       await client.sendMessage(message.from, "Bem vindo ao nosso serviço!");
@@ -86,32 +86,45 @@ client.on("message", async (message) => {
       case "menuOpcoes":
         switch (message.body) {
           case "1":
-            //Atentende
-            await client.sendMessage(message.from,"Você será conectado com um atendente. Por favor, aguarde.");
-            atendimento = true;
-            if (message.fromMe.body.toLowerCase() === "!finalizaratendimento") {
-              atendimento = false;
-              await client.sendMessage(message.from,"Atendimento humano finalizado. Como posso ajudar agora?");
-            }
-            break;
+           //Atentende
+              await client.sendMessage(message.from, "Você será conectado com um atendente. Por favor, aguarde.");
+              atendimento = true;
+              // Inicia o loop de validação
+
+                if (message.body.toLowerCase() == "!finalizaratendimento") {
+                  atendimento = false;
+                  await client.sendMessage(message.from, "Atendimento humano finalizado. Como posso ajudar agora?");
+                  await client.sendMessage(message.from,
+                    "Voltando as Opções:\n" +
+                      "Escolha uma das opções abaixo:\n" +
+                      "1. Falar com um atendente\n" +
+                      "2. Realizar uma reserva\n" +
+                      "3. Horário de atendimento\n" +
+                      "4. Saber sobre nossos produtos");
+                  userStages[message.from] = "menuOpcoes";                }
+
+              break;
+
           case "2":
             //Reserva
-            if (!atendimento) {
-              if (message.body.toLowerCase() === "voltar") {
+              if (message.body.toLowerCase() == "voltar") {
+                await client.sendMessage(message.from,
+                  "Voltando as Opções:\n" +
+                    "Escolha uma das opções abaixo:\n" +
+                    "1. Falar com um atendente\n" +
+                    "2. Realizar uma reserva\n" +
+                    "3. Horário de atendimento\n" +
+                    "4. Saber sobre nossos produtos");
                 userStages[message.from] = "menuOpcoes";
-              } else {
+                    break;
+              }
               const diasDisponiveis = await buscarDias();
-              let mensagemDias ="Dias disponíveis:\n" + diasDisponiveis.map(formatarData).join("\n") + "\nPara voltar escreva 'voltar'";
+              let mensagemDias = "Dias disponíveis:\n" + diasDisponiveis.map(formatarData).join("\n") + "\nPara voltar escreva 'voltar'";
               await client.sendMessage(message.from, mensagemDias);
               userStages[message.from] = "data";
               break;
-              }
-            } else {
-              await client.sendMessage(message.from,"Atendimento humano em andamento. Por favor, aguarde.");
-            }
 
           case "3":
-            if (!atendimento) {
               // Código para informar o horário de atendimento
               await client.sendMessage(message.from,"Nosso horário de atendimento é de Segunda a Sexta, das 9h às 18h.");
               await client.sendMessage(message.from,
@@ -122,12 +135,8 @@ client.on("message", async (message) => {
                   "3. Horário de atendimento\n" +
                   "4. Saber sobre nossos produtos");
               break;
-            } else {
-              await client.sendMessage(message.from,"Atendimento humano em andamento. Por favor, aguarde.");
-            }
 
           case "4":
-            if (!atendimento) {
               // Código para informar sobre os produtos
               await client.sendMessage(message.from,"Nossos produtos incluem corte de cabelo, barba");
               await client.sendMessage(message.from,
@@ -138,29 +147,36 @@ client.on("message", async (message) => {
                   "3. Horário de atendimento\n" +
                   "4. Saber sobre nossos produtos");
               break;
-            } else {
-              await client.sendMessage(message.from,"Atendimento humano em andamento. Por favor, aguarde.");
-            }
-
-          default:
-            await client.sendMessage(message.from,"Opção inválida. Por favor, escolha uma das opções disponíveis.");
+          
+            
+            default:
+              await client.sendMessage(message.from,"Opção inválida. Por favor, escolha uma das opções disponíveis.");
+              break;
+          }
             break;
-        }
-        break;
 
       case "data":
-        userData[message.from].data = message.body;
-        const dataFormatadaParaMySQL = converterDataSQL(userData[message.from].data);
-        const horariosDisponiveis = await buscarHorarios(dataFormatadaParaMySQL);
-        let mensagemHorarios ="Horários disponíveis:\n" + horariosDisponiveis.join("\n") + "\n Para voltar escreva 'voltar'";
 
-        await client.sendMessage(message.from, mensagemHorarios);
-        if (message.body.toLowerCase() === "voltar") {
-          userStages[message.from] = "menuOpcoes";
-        } else {
+      // Opção Voltar para a escolha do horario
+          // if (message.body.toLowerCase() == "voltar") {
+            // await client.sendMessage(message.from,
+            //   "Voltando as Opções:\n" +
+            //     "Escolha uma das opções abaixo:\n" +
+            //     "1. Falar com um atendente\n" +
+            //     "2. Realizar uma reserva\n" +
+            //     "3. Horário de atendimento\n" +
+            //     "4. Saber sobre nossos produtos");
+            //     userStages[message.from] = "menuOpcoes";
+            //     break;
+          // }
+
+          userData[message.from].data = message.body;
+          const dataFormatadaParaMySQL = converterDataSQL(userData[message.from].data);
+          const horariosDisponiveis = await buscarHorarios(dataFormatadaParaMySQL);
+          let mensagemHorarios = "Horários disponíveis:\n" + horariosDisponiveis.join("\n");
+          await client.sendMessage(message.from, mensagemHorarios);
           userStages[message.from] = "confirmarHorario";
           break;
-        }
 
       case "confirmarHorario":
         const horarioEscolhido = message.body;
@@ -174,12 +190,12 @@ client.on("message", async (message) => {
 
       default:
         await client.sendMessage(message.from,"Não entendi. Por favor, digite !iniciar para começar.");
-        // userTimeouts[message.from] = setTimeout(() => {
-        //   console.log(`Timeout expirado para ${message.from}`);
-        //   resetUserState(message.from);
-        // }, TIMEOUT_DURATION);
+        userTimeouts[message.from] = setTimeout(() => {
+          console.log(`Timeout expirado para ${message.from}`);
+          resetUserState(message.from);
+        }, TIMEOUT_DURATION);
         break;
-    }
+  }
   }
 });
 
